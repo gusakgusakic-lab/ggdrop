@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GGdrop - Премиальное Облако</title>
+    
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+
+    <style>
+        :root {
+            --bg-main: #0B0B0C;
+            --bg-card: #16161A;
+            --bg-input: #202024;
+            --border-color: #2C2C35;
+            
+            --text-main: #E4E4E7;
+            --text-muted: #A1A1AA;
+            
+            --blue: #0061FE;
+            --blue-hover: #1A75FF;
+            --accent-green: #10B981;
+            --accent-red: #EF4444;
+            --neon-code: #00D1FF;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .btn {
+            background-color: var(--blue);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn:hover { background-color: var(--blue-hover); }
+        
+        .btn-outline { 
+            background-color: transparent; 
+            color: var(--text-main); 
+            border: 1px solid var(--border-color); 
+        }
+        .btn-outline:hover { 
+            background-color: var(--bg-input);
+            border-color: var(--text-muted);
+        }
+
+        .btn-danger {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        .btn-danger:hover {
+            background-color: var(--accent-red);
+            color: white;
+        }
+
+        .input-field {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 14px;
+            font-size: 16px;
+            border-radius: 8px;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-field:focus { border-color: var(--blue); }
+
+        .screen {
+            display: none;
+            flex: 1;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            width: 100%;
+            height: 100vh;
+        }
+
+        .active-screen { display: flex !important; }
+
+        .central-box {
+            background: var(--bg-card);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+            width: 420px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--blue);
+            margin-bottom: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .format-group {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0 30px 0;
+        }
+
+        .format-option {
+            flex: 1;
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.01);
+            border-radius: 8px;
+            padding: 16px 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .format-option strong { display: block; font-size: 16px; margin-bottom: 4px; color: var(--text-main); }
+        .format-option small { color: var(--text-muted); font-size: 12px; }
+
+        .format-option.selected {
+            border-color: var(--blue);
+            background: rgba(0, 97, 254, 0.1);
+            box-shadow: 0 0 12px rgba(0, 97, 254, 0.2);
+        }
+
+        .workspace {
+            flex-direction: column;
+            height: 100vh;
+            justify-content: flex-start;
+            align-items: stretch;
+        }
+
+        .top-navbar {
+            background: var(--bg-card);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 28px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .disk-meta {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .disk-name-header {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            border-left: 2px solid var(--border-color);
+            padding-left: 20px;
+            color: var(--text-main);
+        }
+
+        .main-layout {
+            display: flex;
+            flex: 1;
+            padding: 28px;
+            gap: 28px;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .premium-code-card {
+            background: linear-gradient(135deg, #1A1A22 0%, #111115 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .premium-code-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--neon-code);
+        }
+        .code-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 8px;
+        }
+        .code-display-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0,0,0,0.2);
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+        .code-string {
+            font-family: monospace;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--neon-code);
+            letter-spacing: 0.5px;
+        }
+        .copy-icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            border-radius: 4px;
+        }
+        .copy-icon-btn:hover { color: var(--neon-code); background: rgba(255,255,255,0.05); }
+
+        .sidebar-meta-list {
+            padding: 4px 0;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        .sidebar-meta-list p { margin-bottom: 8px; }
+        .sidebar-meta-list strong { color: var(--text-main); }
+        
+        .timer-highlight {
+            color: var(--accent-red) !important;
+            font-family: monospace;
+            font-size: 15px;
+        }
+
+        .storage-widget {
+            border-top: 1px solid var(--border-color);
+            padding-top: 16px;
+            margin-top: 8px;
+        }
+        .storage-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+        .progress-track {
+            background: var(--bg-input);
+            border-radius: 20px;
+            height: 8px;
+            width: 100%;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, var(--blue) 0%, var(--neon-code) 100%);
+            width: 0%;
+            height: 100%;
+            transition: width 0.4s ease;
+        }
+
+        .content-workspace {
+            flex: 1;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .explorer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .file-explorer {
+            flex: 1;
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .explorer-item {
+            width: 100%;
+            padding: 12px 20px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        .explorer-item:hover { background: rgba(255,255,255,0.04); }
+        .clickable-item { cursor: pointer; }
+
+        .item-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .status-loader {
+            display: none;
+            color: var(--neon-code);
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Стили для списка дисков */
+        .disk-list-item {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            padding: 14px 20px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        .disk-list-item:hover {
+            background: rgba(255,255,255,0.04);
+        }
+        .disk-list-info {
+            text-align: left;
+        }
+        .disk-list-info strong { 
+            display: block; 
+            color: var(--text-main); 
+            font-size: 15px; 
+            margin-bottom: 6px; 
+        }
+        .disk-list-info small { 
+            color: var(--neon-code); 
+            font-size: 13px; 
+            font-family: monospace; 
+            font-weight: 600;
+        }
+        .disk-list-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 9999;
+        }
+        .toast {
+            background: #1E1E24;
+            color: var(--text-main);
+            border-left: 4px solid var(--blue);
+            padding: 16px 24px;
+            border-radius: 6px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 280px;
+            animation: slideIn 0.3s ease forwards;
+            border: 1px solid var(--border-color);
+        }
+        @keyframes slideIn {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(4px);
+            z-index: 8888;
+            align-items: center;
+            justify-content: center;
+        }
+        .custom-modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 28px;
+            border-radius: 12px;
+            width: 360px;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .lightbox-content {
+            max-width: 85vw;
+            max-height: 85vh;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.7);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="screen1" class="screen active-screen">
+        <div class="central-box">
+            <div class="logo">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                GGdrop
+            </div>
+            <input type="text" id="access-code" class="input-field" style="font-family: monospace; text-align: center; font-size: 18px; margin-bottom: 16px; letter-spacing: 1px;" placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" maxlength="29">
+            
+            <button class="btn" style="width: 100%; margin-bottom: 16px; height: 48px;" onclick="openDisk()">Войти в диск</button>
+            
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-outline" style="flex: 1; height: 48px;" onclick="changeScreen(3)">Создать диск</button>
+                <button class="btn btn-outline" style="flex: 1; height: 48px;" onclick="showMyDisks()">Мои диски</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen3" class="screen">
+        <div class="central-box">
+            <h2 style="margin-bottom: 10px; font-size: 24px;">Новое пространство</h2>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Защищенный IP-лимит: максимум 2 активных диска</p>
+            
+            <input type="text" id="new-disk-name" class="input-field" placeholder="Название диска" style="margin-bottom: 20px;">
+            
+            <div class="format-group">
+                <div class="format-option selected" id="opt-fast" onclick="selectFormat('Fast')">
+                    <strong>Fast</strong>
+                    <small>4 GB / 16 ч.</small>
+                </div>
+                <div class="format-option" id="opt-low" onclick="selectFormat('Low')">
+                    <strong>Low</strong>
+                    <small>2 GB / 1 мес.</small>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-outline" style="flex: 1;" onclick="changeScreen(1)">Отмена</button>
+                <button class="btn" style="flex: 2;" onclick="generateDisk()">Сгенерировать</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen4" class="screen">
+        <div class="central-box" style="width: 540px;">
+            <h2 style="margin-bottom: 24px; font-size: 24px;">Мои диски</h2>
+            <div id="my-disks-list" style="max-height: 350px; overflow-y: auto; margin-bottom: 24px; display: flex; flex-direction: column; gap: 12px;">
+                </div>
+            <button class="btn btn-outline" style="width: 100%; height: 48px;" onclick="changeScreen(1)">Вернуться на главную</button>
+        </div>
+    </div>
+
+    <div id="screen2" class="screen workspace">
+        <div class="top-navbar">
+            <div class="disk-meta">
+                <div class="logo" style="margin: 0; font-size: 22px;">GGdrop</div>
+                <div class="disk-name-header" id="top-disk-name">Имя диска</div>
+            </div>
+            <button class="btn btn-outline" onclick="exitDisk()">Выйти из диска</button>
+        </div>
+
+        <div class="main-layout">
+            <div class="sidebar">
+                <button class="btn" onclick="triggerCloudinaryUpload()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    Загрузить файлы
+                </button>
+                
+                <button class="btn btn-outline" onclick="openFolderModal()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>
+                    Создать папку
+                </button>
+
+                <div class="premium-code-card">
+                    <span class="code-label">Защищенный ключ доступа</span>
+                    <div class="code-display-container">
+                        <span class="code-string" id="sidebar-code">XXXXX-XXXXX-XXXXX</span>
+                        <button class="copy-icon-btn" title="Копировать код" onclick="copyCode()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        </button>
+                    </div>
+                    
+                    <div class="sidebar-meta-list" style="margin-top: 14px;">
+                        <p>Режим тарифа: <strong id="display-disk-format">Fast</strong></p>
+                        <p>До удаления данных: <strong id="display-disk-time" class="timer-highlight">16:00:00</strong></p>
+                    </div>
+
+                    <div class="storage-widget">
+                        <div class="storage-labels">
+                            <span>Занято</span>
+                            <strong id="display-disk-size" style="color: var(--neon-code);">0 GB / 4 GB</strong>
+                        </div>
+                        <div class="progress-track">
+                            <div id="storage-bar" class="progress-fill"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-workspace">
+                <div class="explorer-header">
+                    <h3 style="font-size: 18px; font-weight: 600;" id="explorer-path">Облачный корень</h3>
+                    <button class="btn btn-outline" id="back-btn" style="padding: 6px 12px; font-size: 12px; display: none;" onclick="navigateBack()">← Назад</button>
+                </div>
+                
+                <div class="file-explorer" id="file-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="folder-modal">
+        <div class="custom-modal">
+            <h4 style="margin-bottom: 14px; font-size: 16px;">Создать новую папку</h4>
+            <input type="text" id="folder-name-input" class="input-field" placeholder="Имя папки" style="padding: 10px;">
+            <div class="modal-actions">
+                <button class="btn btn-outline" style="padding: 8px 14px;" onclick="closeFolderModal()">Отмена</button>
+                <button class="btn" style="padding: 8px 16px;" onclick="submitCreateFolder()">Создать</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="lightbox-modal" onclick="closeLightbox()">
+        <img class="lightbox-content" id="lightbox-img" src="" alt="Preview">
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script>
+        // =======================================================
+        // НАСТРОЙКИ CLOUDINARY
+        // =======================================================
+        const CLOUD_NAME = "dtcfutaet";
+        const UPLOAD_PRESET = "ggdrop_upload";
+        // =======================================================
+
+        let currentFormat = 'Fast';
+        let currentUsedSpace = 0; 
+        let maxSpace = 4096; // 4 GB для Fast
+        let diskName = "Мой Диск";
+        
+        let filesystem = []; 
+        let currentFolderId = null; 
+        
+        let countdownTimer = null;
+        let timeSecondsLeft = 0;
+
+        document.getElementById('access-code').addEventListener('input', function (e) {
+            let target = e.target;
+            let val = target.value.replace(/-/g, '').toUpperCase();
+            let newVal = '';
+            for(let i = 0; i < val.length; i++) {
+                if (i > 0 && i % 5 === 0) newVal += '-';
+                newVal += val[i];
+            }
+            target.value = newVal;
+        });
+
+        function pushNotification(text) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerText = text;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s ease reverse forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function changeScreen(screenNumber) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+            document.getElementById(`screen${screenNumber}`).classList.add('active-screen');
+        }
+
+        function selectFormat(format) {
+            currentFormat = format;
+            maxSpace = format === 'Fast' ? 4096 : 2048;
+            document.getElementById('opt-fast').classList.remove('selected');
+            document.getElementById('opt-low').classList.remove('selected');
+            document.getElementById(`opt-${format.toLowerCase()}`).classList.add('selected');
+        }
+
+        // =======================================================
+        // ЛОГИКА "МОИ ДИСКИ"
+        // =======================================================
+        function getSavedDisks() {
+            return JSON.parse(localStorage.getItem('ggdrop_saved_disks') || '[]');
+        }
+
+        function saveDisksData(disksArray) {
+            localStorage.setItem('ggdrop_saved_disks', JSON.stringify(disksArray));
+        }
+
+        function showMyDisks() {
+            renderMyDisks();
+            changeScreen(4);
+        }
+
+        function renderMyDisks() {
+            const list = document.getElementById('my-disks-list');
+            const savedDisks = getSavedDisks();
+            
+            if (savedDisks.length === 0) {
+                list.innerHTML = `
+                    <div style="text-align: center; padding: 40px 0;">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--border-color)" stroke-width="1.5" style="margin-bottom: 12px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                        <p style="color: var(--text-muted); font-size: 14px;">У вас пока нет сохраненных дисков.</p>
+                    </div>`;
+                return;
+            }
+
+            list.innerHTML = '';
+            savedDisks.forEach(disk => {
+                const div = document.createElement('div');
+                div.className = 'disk-list-item';
+                div.innerHTML = `
+                    <div class="disk-list-info">
+                        <strong>${disk.name}</strong>
+                        <small>${disk.code}</small>
+                    </div>
+                    <div class="disk-list-actions">
+                        <button class="btn" style="padding: 8px 14px; font-size: 13px;" onclick="openDiskFromList('${disk.code}')">Открыть</button>
+                        <button class="btn btn-danger" style="padding: 8px 12px; font-size: 13px;" onclick="deleteDiskFromList('${disk.code}')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function openDiskFromList(code) {
+            document.getElementById('access-code').value = code;
+            openDisk();
+        }
+
+        function deleteDiskFromList(code) {
+            let savedDisks = getSavedDisks();
+            savedDisks = savedDisks.filter(d => d.code !== code);
+            saveDisksData(savedDisks);
+            
+            pushNotification('Диск стерт из памяти.');
+            renderMyDisks();
+        }
+        // =======================================================
+
+
+        function generateDisk() {
+            let savedDisks = getSavedDisks();
+            
+            if (savedDisks.length >= 2) {
+                pushNotification("Блокировка IP: Лимит исчерпан (максимум 2 диска). Удалите старый диск.");
+                return;
+            }
+
+            const inputName = document.getElementById('new-disk-name').value.trim();
+            diskName = inputName || 'Новое пространство';
+            
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for(let i=0; i<25; i++) {
+                if(i > 0 && i % 5 === 0) code += '-';
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            
+            // Сохраняем в список
+            savedDisks.push({
+                name: diskName,
+                code: code,
+                format: currentFormat
+            });
+            saveDisksData(savedDisks);
+
+            document.getElementById('access-code').value = code;
+            pushNotification(`Диск готов (Активно: ${savedDisks.length}/2). Сохранен в "Мои диски".`);
+            changeScreen(1);
+        }
+
+        function openDisk() {
+            const code = document.getElementById('access-code').value.trim();
+            if (code.length !== 29) {
+                pushNotification('Ошибка: Неверный формат ключа доступа.');
+                return;
+            }
+
+            // Пытаемся восстановить имя и формат из памяти, если диск наш
+            const savedDisks = getSavedDisks();
+            const foundDisk = savedDisks.find(d => d.code === code);
+            if (foundDisk) {
+                diskName = foundDisk.name;
+                currentFormat = foundDisk.format;
+            } else {
+                diskName = "Внешний диск";
+                // Если диск чужой, формат оставляем по умолчанию
+            }
+
+            document.getElementById('top-disk-name').innerText = diskName;
+            document.getElementById('sidebar-code').innerText = code;
+            document.getElementById('display-disk-format').innerText = currentFormat;
+            
+            maxSpace = currentFormat === 'Fast' ? 4096 : 2048;
+            filesystem = [];
+            currentFolderId = null;
+            currentUsedSpace = 0;
+            
+            if (currentFormat === 'Fast') {
+                timeSecondsLeft = 16 * 3600; // 16 часов
+            } else {
+                timeSecondsLeft = 30 * 24 * 3600; // 1 месяц
+            }
+            
+            startDiskTimer();
+            renderExplorer();
+            updateStorageUI();
+            changeScreen(2);
+            pushNotification('Вход выполнен. Протокол шифрования запущен.');
+        }
+
+        function startDiskTimer() {
+            if (countdownTimer) clearInterval(countdownTimer);
+            
+            function updateDisplay() {
+                let hrs = Math.floor(timeSecondsLeft / 3600);
+                let mins = Math.floor((timeSecondsLeft % 3600) / 60);
+                let secs = timeSecondsLeft % 60;
+                document.getElementById('display-disk-time').innerText = 
+                    `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            updateDisplay();
+            countdownTimer = setInterval(() => {
+                timeSecondsLeft--;
+                if (timeSecondsLeft <= 0) {
+                    clearInterval(countdownTimer);
+                    triggerSelfDestruct();
+                } else {
+                    updateDisplay();
+                }
+            }, 1000);
+        }
+
+        function triggerSelfDestruct() {
+            filesystem = [];
+            currentUsedSpace = 0;
+            currentFolderId = null;
+            exitDisk();
+            pushNotification("УНИЧТОЖЕНИЕ: Время истекло! Файлы скрыты из интерфейса.");
+        }
+
+        function exitDisk() {
+            if (countdownTimer) clearInterval(countdownTimer);
+            changeScreen(1);
+            document.getElementById('access-code').value = '';
+        }
+
+        function copyCode() {
+            navigator.clipboard.writeText(document.getElementById('sidebar-code').innerText);
+            pushNotification('Ключ скопирован!');
+        }
+
+        function triggerCloudinaryUpload() {
+            const currentCode = document.getElementById('sidebar-code').innerText;
+
+            const myWidget = cloudinary.createUploadWidget({
+                cloudName: CLOUD_NAME,
+                uploadPreset: UPLOAD_PRESET,
+                folder: 'ggdrop/' + currentCode, // Папка в Cloudinary по коду
+                multiple: true
+            }, (error, result) => {
+                if (!error && result && result.event === "success") {
+                    const info = result.info;
+                    const sizeMB = info.bytes / (1024 * 1024);
+
+                    if (currentUsedSpace + sizeMB > maxSpace) {
+                        pushNotification(`Место переполнено! Не удалось добавить ${info.original_filename}`);
+                        return;
+                    }
+
+                    currentUsedSpace += sizeMB;
+
+                    // Добавляем файл, полученный от Cloudinary, в нашу систему
+                    filesystem.push({
+                        id: info.public_id,
+                        type: 'file',
+                        name: info.original_filename + '.' + info.format,
+                        sizeMB: sizeMB,
+                        parentId: currentFolderId,
+                        isImage: info.resource_type === 'image',
+                        dataUrl: info.secure_url // Ссылка на Cloudinary
+                    });
+
+                    renderExplorer();
+                    updateStorageUI();
+                    pushNotification('Файл успешно загружен в облако.');
+                }
+            });
+
+            myWidget.open();
+        }
+
+        function downloadFile(id, event) {
+            if(event) event.stopPropagation();
+            const item = filesystem.find(f => f.id === id);
+            if (!item) return;
+
+            // Добавляем флаг fl_attachment для принудительного скачивания
+            const downloadUrl = item.dataUrl.replace('/upload/', '/upload/fl_attachment/');
+            
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = item.name;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            pushNotification(`Скачивание "${item.name}" началось.`);
+        }
+
+        function deleteItem(id, event) {
+            if(event) event.stopPropagation();
+            const item = filesystem.find(f => f.id === id);
+            if (!item) return;
+
+            if (item.type === 'folder') {
+                function clearFolderData(parentId) {
+                    const children = filesystem.filter(c => c.parentId === parentId);
+                    children.forEach(c => {
+                        if (c.type === 'folder') clearFolderData(c.id);
+                        else {
+                            currentUsedSpace -= c.sizeMB;
+                        }
+                        filesystem = filesystem.filter(x => x.id !== c.id);
+                    });
+                }
+                clearFolderData(item.id);
+            } else {
+                currentUsedSpace -= item.sizeMB;
+            }
+
+            filesystem = filesystem.filter(x => x.id !== id);
+            if (currentUsedSpace < 0) currentUsedSpace = 0;
+
+            renderExplorer();
+            updateStorageUI();
+            pushNotification(`"${item.name}" удален из интерфейса.`);
+        }
+
+        function renderExplorer() {
+            const fileList = document.getElementById('file-list');
+            fileList.innerHTML = '';
+
+            if (currentFolderId === null) {
+                document.getElementById('explorer-path').innerText = "Облачный корень";
+                document.getElementById('back-btn').style.display = 'none';
+            } else {
+                const currentFolder = filesystem.find(f => f.id === currentFolderId);
+                document.getElementById('explorer-path').innerText = `Корень / ${currentFolder.name}`;
+                document.getElementById('back-btn').style.display = 'inline-block';
+            }
+
+            const itemsToRender = filesystem.filter(item => item.parentId === currentFolderId);
+
+            if (itemsToRender.length === 0) {
+                fileList.innerHTML = `
+                    <div style="text-align: center; margin: auto; max-width: 260px;" id="empty-state">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        <p style="color: var(--text-muted); font-size: 14px; margin-top: 12px;">Пустое пространство</p>
+                    </div>`;
+                return;
+            }
+
+            itemsToRender.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'explorer-item';
+                
+                if (item.type === 'folder') {
+                    div.classList.add('clickable-item');
+                    div.onclick = () => { currentFolderId = item.id; renderExplorer(); };
+                    
+                    div.innerHTML = `
+                        <div class="item-info">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--neon-code)" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                            <div>
+                                <strong style="display:block; font-size:14px;">${item.name}</strong>
+                                <small style="color: var(--text-muted); font-size:12px;">Папка</small>
+                            </div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;">Открыть</button>
+                            <button class="btn btn-danger" style="padding: 6px 10px;" onclick="deleteItem('${item.id}', event)">Удалить</button>
+                        </div>
+                    `;
+                } else {
+                    let actionButtons = ``;
+                    
+                    if (item.isImage) {
+                        div.classList.add('clickable-item');
+                        div.onclick = () => openLightbox(item.dataUrl);
+                        actionButtons = `
+                            <button class="btn" style="padding: 6px 12px; font-size: 12px; background:#10B981;" onclick="openLightbox('${item.dataUrl}', event)">Смотреть</button>`;
+                    }
+
+                    div.innerHTML = `
+                        <div class="item-info">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="${item.isImage ? 'var(--accent-green)' : 'var(--blue)'}" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                            <div>
+                                <strong style="display:block; font-size:14px;">${item.name}</strong>
+                                <small style="color: var(--text-muted); font-size:12px;">Cloudinary • ${item.sizeMB < 1 ? (item.sizeMB * 1024).toFixed(0) + ' KB' : item.sizeMB.toFixed(1) + ' MB'}</small>
+                            </div>
+                        </div>
+                        <div class="item-actions" onclick="event.stopPropagation();">
+                            ${actionButtons}
+                            <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;" onclick="downloadFile('${item.id}', event)">Скачать</button>
+                            <button class="btn btn-danger" style="padding: 6px 10px;" onclick="deleteItem('${item.id}', event)">Удалить</button>
+                        </div>
+                    `;
+                }
+                fileList.appendChild(div);
+            });
+        }
+
+        function navigateBack() {
+            if (currentFolderId !== null) {
+                currentFolderId = filesystem.find(f => f.id === currentFolderId).parentId;
+                renderExplorer();
+            }
+        }
+
+        function openFolderModal() {
+            document.getElementById('folder-modal').style.display = 'flex';
+            document.getElementById('folder-name-input').focus();
+        }
+
+        function closeFolderModal() {
+            document.getElementById('folder-modal').style.display = 'none';
+            document.getElementById('folder-name-input').value = '';
+        }
+
+        function submitCreateFolder() {
+            const folderName = document.getElementById('folder-name-input').value.trim();
+            if(!folderName) return;
+
+            filesystem.push({
+                id: 'folder_' + Date.now(),
+                type: 'folder',
+                name: folderName,
+                sizeMB: 0,
+                parentId: currentFolderId
+            });
+
+            closeFolderModal();
+            renderExplorer();
+            pushNotification(`Папка "${folderName}" добавлена.`);
+        }
+
+        function openLightbox(url, event) {
+            if(event) event.stopPropagation();
+            const modal = document.getElementById('lightbox-modal');
+            document.getElementById('lightbox-img').src = url;
+            modal.style.display = 'flex';
+        }
+
+        function closeLightbox() { document.getElementById('lightbox-modal').style.display = 'none'; }
+
+        function updateStorageUI() {
+            const used = currentUsedSpace < 1024 ? currentUsedSpace.toFixed(1) + ' MB' : (currentUsedSpace / 1024).toFixed(1) + ' GB';
+            const maxG = (maxSpace / 1024).toFixed(0) + ' GB';
+            document.getElementById('display-disk-size').innerText = `${used} / ${maxG}`;
+            document.getElementById('storage-bar').style.width = `${Math.min((currentUsedSpace / maxSpace) * 100, 100)}%`;
+        }
+    </script>
+    <style> @keyframes spin { 100% { transform: rotate(360deg); } } </style>
+</body>
+</html>
