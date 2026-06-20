@@ -337,16 +337,6 @@
             align-items: center;
         }
 
-        .status-loader {
-            display: none;
-            color: var(--neon-code);
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            align-items: center;
-            gap: 8px;
-        }
-
         /* Стили для списка дисков */
         .disk-list-item {
             background: rgba(255,255,255,0.02);
@@ -587,6 +577,7 @@
         let countdownTimer = null;
         let timeSecondsLeft = 0;
 
+        // Обработка формата ключа 5x5
         document.getElementById('access-code').addEventListener('input', function (e) {
             let target = e.target;
             let val = target.value.replace(/-/g, '').toUpperCase();
@@ -598,6 +589,7 @@
             target.value = newVal;
         });
 
+        // Уведомления
         function pushNotification(text) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -624,7 +616,7 @@
         }
 
         // =======================================================
-        // ЛОГИКА "МОИ ДИСКИ"
+        // ЛОГИКА СОХРАНЕНИЯ ФАЙЛОВ И ДИСКОВ В LOCALSTORAGE
         // =======================================================
         function getSavedDisks() {
             return JSON.parse(localStorage.getItem('ggdrop_saved_disks') || '[]');
@@ -634,6 +626,29 @@
             localStorage.setItem('ggdrop_saved_disks', JSON.stringify(disksArray));
         }
 
+        function saveFilesystem() {
+            const code = document.getElementById('sidebar-code').innerText;
+            if (code && code !== 'XXXXX-XXXXX-XXXXX') {
+                localStorage.setItem('ggdrop_files_' + code, JSON.stringify(filesystem));
+                localStorage.setItem('ggdrop_used_' + code, currentUsedSpace.toString());
+            }
+        }
+
+        function loadFilesystem(code) {
+            const savedFiles = localStorage.getItem('ggdrop_files_' + code);
+            const savedSpace = localStorage.getItem('ggdrop_used_' + code);
+            if (savedFiles) {
+                filesystem = JSON.parse(savedFiles);
+                currentUsedSpace = parseFloat(savedSpace) || 0;
+            } else {
+                filesystem = [];
+                currentUsedSpace = 0;
+            }
+        }
+
+        // =======================================================
+        // МОИ ДИСКИ
+        // =======================================================
         function showMyDisks() {
             renderMyDisks();
             changeScreen(4);
@@ -682,12 +697,17 @@
             savedDisks = savedDisks.filter(d => d.code !== code);
             saveDisksData(savedDisks);
             
-            pushNotification('Диск стерт из памяти.');
+            // Удаляем данные файлов этого диска
+            localStorage.removeItem('ggdrop_files_' + code);
+            localStorage.removeItem('ggdrop_used_' + code);
+            
+            pushNotification('Диск и его данные стерты из памяти.');
             renderMyDisks();
         }
+
         // =======================================================
-
-
+        // УПРАВЛЕНИЕ ДИСКОМ
+        // =======================================================
         function generateDisk() {
             let savedDisks = getSavedDisks();
             
@@ -706,7 +726,6 @@
                 code += chars.charAt(Math.floor(Math.random() * chars.length));
             }
             
-            // Сохраняем в список
             savedDisks.push({
                 name: diskName,
                 code: code,
@@ -726,7 +745,6 @@
                 return;
             }
 
-            // Пытаемся восстановить имя и формат из памяти, если диск наш
             const savedDisks = getSavedDisks();
             const foundDisk = savedDisks.find(d => d.code === code);
             if (foundDisk) {
@@ -734,7 +752,6 @@
                 currentFormat = foundDisk.format;
             } else {
                 diskName = "Внешний диск";
-                // Если диск чужой, формат оставляем по умолчанию
             }
 
             document.getElementById('top-disk-name').innerText = diskName;
@@ -742,21 +759,22 @@
             document.getElementById('display-disk-format').innerText = currentFormat;
             
             maxSpace = currentFormat === 'Fast' ? 4096 : 2048;
-            filesystem = [];
             currentFolderId = null;
-            currentUsedSpace = 0;
+            
+            // Загружаем файлы из памяти
+            loadFilesystem(code);
             
             if (currentFormat === 'Fast') {
-                timeSecondsLeft = 16 * 3600; // 16 часов
+                timeSecondsLeft = 16 * 3600; 
             } else {
-                timeSecondsLeft = 30 * 24 * 3600; // 1 месяц
+                timeSecondsLeft = 30 * 24 * 3600; 
             }
             
             startDiskTimer();
             renderExplorer();
             updateStorageUI();
             changeScreen(2);
-            pushNotification('Вход выполнен. Протокол шифрования запущен.');
+            pushNotification('Вход выполнен. Протокол загружен.');
         }
 
         function startDiskTimer() {
@@ -783,11 +801,12 @@
         }
 
         function triggerSelfDestruct() {
+            const code = document.getElementById('sidebar-code').innerText;
             filesystem = [];
             currentUsedSpace = 0;
-            currentFolderId = null;
+            saveFilesystem();
             exitDisk();
-            pushNotification("УНИЧТОЖЕНИЕ: Время истекло! Файлы скрыты из интерфейса.");
+            pushNotification("УНИЧТОЖЕНИЕ: Время истекло! Данные удалены.");
         }
 
         function exitDisk() {
@@ -801,40 +820,51 @@
             pushNotification('Ключ скопирован!');
         }
 
+        // =======================================================
+        // ЗАГРУЗКА CLOUDINARY И УПРАВЛЕНИЕ ФАЙЛАМИ
+        // =======================================================
         function triggerCloudinaryUpload() {
             const currentCode = document.getElementById('sidebar-code').innerText;
 
             const myWidget = cloudinary.createUploadWidget({
                 cloudName: CLOUD_NAME,
                 uploadPreset: UPLOAD_PRESET,
-                folder: 'ggdrop/' + currentCode, // Папка в Cloudinary по коду
+                folder: 'ggdrop/' + currentCode,
                 multiple: true
             }, (error, result) => {
                 if (!error && result && result.event === "success") {
                     const info = result.info;
+                    console.log("Cloudinary загрузил файл:", info); // Лог для проверки
+                    
                     const sizeMB = info.bytes / (1024 * 1024);
 
                     if (currentUsedSpace + sizeMB > maxSpace) {
-                        pushNotification(`Место переполнено! Не удалось добавить ${info.original_filename}`);
+                        pushNotification(`Место переполнено! Не удалось добавить файл.`);
                         return;
                     }
 
                     currentUsedSpace += sizeMB;
+                    
+                    // Умное формирование имени файла
+                    let fileName = info.original_filename;
+                    if (info.format && !fileName.endsWith(info.format)) {
+                        fileName += '.' + info.format;
+                    }
 
-                    // Добавляем файл, полученный от Cloudinary, в нашу систему
                     filesystem.push({
-                        id: info.public_id,
+                        id: info.public_id || 'item_' + Date.now(),
                         type: 'file',
-                        name: info.original_filename + '.' + info.format,
+                        name: fileName,
                         sizeMB: sizeMB,
                         parentId: currentFolderId,
                         isImage: info.resource_type === 'image',
-                        dataUrl: info.secure_url // Ссылка на Cloudinary
+                        dataUrl: info.secure_url 
                     });
 
+                    saveFilesystem(); // СОХРАНЯЕМ В ПАМЯТЬ
                     renderExplorer();
                     updateStorageUI();
-                    pushNotification('Файл успешно загружен в облако.');
+                    pushNotification('Файл успешно сохранен.');
                 }
             });
 
@@ -846,7 +876,6 @@
             const item = filesystem.find(f => f.id === id);
             if (!item) return;
 
-            // Добавляем флаг fl_attachment для принудительного скачивания
             const downloadUrl = item.dataUrl.replace('/upload/', '/upload/fl_attachment/');
             
             const link = document.createElement('a');
@@ -882,9 +911,10 @@
             filesystem = filesystem.filter(x => x.id !== id);
             if (currentUsedSpace < 0) currentUsedSpace = 0;
 
+            saveFilesystem(); // СОХРАНЯЕМ ИЗМЕНЕНИЯ
             renderExplorer();
             updateStorageUI();
-            pushNotification(`"${item.name}" удален из интерфейса.`);
+            pushNotification(`"${item.name}" удален.`);
         }
 
         function renderExplorer() {
@@ -896,8 +926,10 @@
                 document.getElementById('back-btn').style.display = 'none';
             } else {
                 const currentFolder = filesystem.find(f => f.id === currentFolderId);
-                document.getElementById('explorer-path').innerText = `Корень / ${currentFolder.name}`;
-                document.getElementById('back-btn').style.display = 'inline-block';
+                if (currentFolder) {
+                    document.getElementById('explorer-path').innerText = `Корень / ${currentFolder.name}`;
+                    document.getElementById('back-btn').style.display = 'inline-block';
+                }
             }
 
             const itemsToRender = filesystem.filter(item => item.parentId === currentFolderId);
@@ -906,7 +938,7 @@
                 fileList.innerHTML = `
                     <div style="text-align: center; margin: auto; max-width: 260px;" id="empty-state">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                        <p style="color: var(--text-muted); font-size: 14px; margin-top: 12px;">Пустое пространство</p>
+                        <p style="color: var(--text-muted); font-size: 14px; margin-top: 12px;">Папка пуста</p>
                     </div>`;
                 return;
             }
@@ -946,7 +978,7 @@
                         <div class="item-info">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="${item.isImage ? 'var(--accent-green)' : 'var(--blue)'}" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                             <div>
-                                <strong style="display:block; font-size:14px;">${item.name}</strong>
+                                <strong style="display:block; font-size:14px; word-break: break-all;">${item.name}</strong>
                                 <small style="color: var(--text-muted); font-size:12px;">Cloudinary • ${item.sizeMB < 1 ? (item.sizeMB * 1024).toFixed(0) + ' KB' : item.sizeMB.toFixed(1) + ' MB'}</small>
                             </div>
                         </div>
@@ -963,7 +995,9 @@
 
         function navigateBack() {
             if (currentFolderId !== null) {
-                currentFolderId = filesystem.find(f => f.id === currentFolderId).parentId;
+                const f = filesystem.find(item => item.id === currentFolderId);
+                if (f) currentFolderId = f.parentId;
+                else currentFolderId = null;
                 renderExplorer();
             }
         }
@@ -990,6 +1024,7 @@
                 parentId: currentFolderId
             });
 
+            saveFilesystem(); // СОХРАНЯЕМ В ПАМЯТЬ
             closeFolderModal();
             renderExplorer();
             pushNotification(`Папка "${folderName}" добавлена.`);
@@ -1011,6 +1046,5 @@
             document.getElementById('storage-bar').style.width = `${Math.min((currentUsedSpace / maxSpace) * 100, 100)}%`;
         }
     </script>
-    <style> @keyframes spin { 100% { transform: rotate(360deg); } } </style>
 </body>
 </html>
